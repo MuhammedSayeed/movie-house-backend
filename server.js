@@ -9,7 +9,7 @@ import cookieParser from 'cookie-parser';
 
 
 const corsOptions = {
-    origin: 'http://localhost:5173',
+    origin: process.env.FRONTEND_DOMAIN,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', , 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
@@ -18,7 +18,7 @@ const corsOptions = {
 const base = "/api/v1";
 dotenv.config();
 const app = express();
-app.options('*', cors(corsOptions)); 
+app.options(cors(corsOptions)); 
 app.use(express.json())
 app.use(cookieParser());
 app.use(cors(corsOptions));
