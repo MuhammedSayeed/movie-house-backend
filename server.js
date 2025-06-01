@@ -11,7 +11,7 @@ import cookieParser from 'cookie-parser';
 const corsOptions = {
     origin: process.env.FRONTEND_DOMAIN,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', , 'PATCH', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT' , 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Cookie'],
 };
 
