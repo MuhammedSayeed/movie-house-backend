@@ -11,10 +11,7 @@ router.post('/signin', validation(signInSchema), controller.signIn)
 router.patch('/name', controller.verifyToken, validation(updateNameSchema), controller.updateName)
 router.patch('/email', controller.verifyToken, validation(updateEmailSchema), controller.updateEmail)
 router.patch('/password', controller.verifyToken, validation(updatePasswordSchema), controller.updatePassword)
-router.delete('/', controller.verifyToken, controller.deleteUser)
-router.post('/logout', controller.logout)
 router.post('/google', controller.authWithGoogle)
-
 
 
 export default router;

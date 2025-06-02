@@ -4,7 +4,6 @@ import { generateToken, getUserInfo, sendError } from "../../utils/index.js"
 import bcrypt from 'bcrypt'
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
-import { FavoriteModel } from "../../../databases/models/favorite.js";
 
 const signup = catchAsyncError(
     async (req, res, next) => {
@@ -20,12 +19,7 @@ const signup = catchAsyncError(
         // GENERATE TOKEN 
         const userInfo = getUserInfo(user);
         const token = generateToken(userInfo);
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie will last for 7 days
-        });
-        res.status(201).json({ message: "success", user: userInfo })
+        res.status(201).json({ message: "success", user: userInfo, token })
     }
 )
 const signIn = catchAsyncError(
@@ -41,75 +35,9 @@ const signIn = catchAsyncError(
         const userInfo = getUserInfo(user);
         const token = generateToken(userInfo);
         // SEND RESPONSE
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            maxAge: 7 * 24 * 60 * 60 * 1000 // Cookie will last for 7 days
-        });
-        res.status(200).json({ message: "success", user: userInfo })
+        res.status(200).json({ message: "success", user: userInfo, token })
     }
 )
-const logout = catchAsyncError(
-    async (req, res, next) => {
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: false
-        });
-        res.status(200).json({ message: "success" })
-    }
-)
-
-// const signupWithGoogle = catchAsyncError(
-//     async (req, res, next) => {
-//         const { googleToken } = req.body;
-//         const userData = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
-//             headers: {
-//                 Authorization: `Bearer ${googleToken}`
-//             }
-//         })
-//         const { data } = userData;
-//         let user = await UserModel.findOne({ email: data.email });
-//         if (user) sendError(next, "account already exist", 401)
-
-//         user = new UserModel({
-//             name: data.name,
-//             email: data.email,
-//             profileImage: data.picture,
-//             authType: "google"
-//         });
-//         await user.save();
-
-//         // GENERATE TOKEN
-//         const userInfo = getUserInfo(user);
-//         const token = generateToken(userInfo);
-
-//         // SEND RESPONSE
-//         res.cookie('token', token, { httpOnly: true, secure: false });
-//         res.json({ message: "success", user: userInfo })
-//     }
-// )
-
-// const signInWithGoogle = catchAsyncError(
-//     async (req, res, next) => {
-//         const { googleToken } = req.body;
-//         const userData = await axios.get("https://www.googleapis.com/oauth2/v3/userinfo", {
-//             headers: {
-//                 Authorization: `Bearer ${googleToken}`
-//             }
-//         })
-//         const { data } = userData;
-//         let user = await UserModel.findOne({ email: data.email , authType : "google" });
-//         if (!user) sendError(next, "account not found", 401)
-
-//         // GENERATE TOKEN
-//         const userInfo = getUserInfo(user);
-//         const token = generateToken(userInfo);
-
-//         // SEND RESPONSE
-//         res.cookie('token', token, { httpOnly: true, secure: false });
-//         res.json({ message: "success", user: userInfo })
-//     }
-// )
 
 const authWithGoogle = catchAsyncError(
     async (req, res, next) => {
@@ -134,13 +62,12 @@ const authWithGoogle = catchAsyncError(
         const userInfo = getUserInfo(user);
         const token = generateToken(userInfo);
         // SEND RESPONSE
-        res.cookie('token', token, { httpOnly: true, secure: false });
-        res.json({ message: "success", user: userInfo })
+        res.json({ message: "success", user: userInfo , token })
     }
 )
 const verifyToken = catchAsyncError(
     async (req, res, next) => {
-        const token = req.cookies.token;
+        const token = req.headers.authorization.split(" ")[1];
         if (!token) return sendError(next, 'Not authorized', 401);
         const decoded = jwt.verify(token, process.env.JWT_KEY);
         req.user = decoded;
@@ -150,7 +77,6 @@ const verifyToken = catchAsyncError(
 const updateName = catchAsyncError(
     async (req, res, next) => {
         const { name, password, authType } = req.body;
-
 
         // check if user is existing
         const user = await UserModel.findOne({ email: req.user.email });
@@ -169,12 +95,7 @@ const updateName = catchAsyncError(
         const userInfo = getUserInfo(user);
         const token = generateToken(userInfo);
 
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-        res.status(200).json({ message: 'Success', user: userInfo });
+        res.status(200).json({ message: 'Success', user: userInfo, token });
 
     }
 )
@@ -200,12 +121,8 @@ const updateEmail = catchAsyncError(
         // Return updated user info
         const userInfo = getUserInfo(user);
         const token = generateToken(userInfo);
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-        res.status(200).json({ message: 'Success', user: userInfo });
+
+        res.status(200).json({ message: 'Success', user: userInfo, token });
     }
 )
 const updatePassword = catchAsyncError(
@@ -228,41 +145,18 @@ const updatePassword = catchAsyncError(
         // Return updated user info
         const userInfo = getUserInfo(user);
         const token = generateToken(userInfo);
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: false, // Set to true in production with HTTPS
-            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-        });
-        res.status(200).json({ message: 'Success', user: userInfo });
+
+        res.status(200).json({ message: 'Success', user: userInfo, token });
     }
 )
-const deleteUser = catchAsyncError(
-    async (req, res, next) => {
-        const userId = req.user._id;
-        // check if user is existing
-        const user = await UserModel.findOneAndDelete({ _id: userId });
-        if (!user) return sendError(next, 'User not found', 404);
 
-        // Remove user's favorite list if exists
-        const list = await FavoriteModel.findOne({ user: userId });
-        if (list) await list.remove();
-
-        res.clearCookie('token', {
-            httpOnly: true,
-            secure: false,
-        });
-        res.status(204).json({ message: 'User deleted successfully' });
-    }
-)
 
 export {
     signup,
     authWithGoogle,
     signIn,
-    logout,
     verifyToken,
     updateName,
     updateEmail,
-    updatePassword,
-    deleteUser
+    updatePassword
 }
